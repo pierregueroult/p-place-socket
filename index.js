@@ -51,4 +51,6 @@ io.on("connection", async (socket) => {
   });
 });
 
-httpServer.listen(port);
+httpServer.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
