@@ -10,6 +10,8 @@ const io = new Server(httpServer, {
   },
 });
 
+const port = process.env.PORT || 4000;
+
 io.on("connection", async (socket) => {
   var map = await prisma.map.findMany();
   updateMap();
@@ -49,4 +51,4 @@ io.on("connection", async (socket) => {
   });
 });
 
-httpServer.listen(4000);
+httpServer.listen(port);
