@@ -51,6 +51,13 @@ io.on("connection", async (socket) => {
   });
 });
 
+httpServer.on("request", (req, res) => {
+  if (req.url === "/health") {
+    res.writeHead(200);
+    res.end();
+  }
+});
+
 httpServer.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
