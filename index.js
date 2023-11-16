@@ -5,7 +5,7 @@ const prisma = require("./lib/prisma");
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://place.pierregueroult.dev",
+    origin: ["https://place.pierregueroult.dev", "http://localhost:3000"],
     methods: ["GET", "POST"],
   },
 });
