@@ -1,7 +1,7 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const prisma = require("./lib/prisma");
-
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
 const httpServer = createServer();
 
 const io = new Server(httpServer, {
@@ -12,43 +12,26 @@ const io = new Server(httpServer, {
 });
 
 const port = process.env.PORT || 4000;
+const dataBaseUri = process.env.DATABASE_URL || "";
 
 io.on("connection", async (socket) => {
-  var map = await prisma.map.findMany();
-  updateMap();
+  console.log("Nouvelle connexion");
+  const client = new MongoClient(dataBaseUri);
+  await client.connect();
+  const db = client.db("pplace");
+  // we look for a change in the map collection and we emit the change to the client
 
-  async function updateMap() {
-    var tempMap = await prisma.map.findMany();
-    if (tempMap === map) {
-      // console.log("No change");
-      return;
-    }
-    // console.log("Change");
-    map = tempMap;
-    const newMap = tempMap.map((item) => ({
-      coords: [item.x, item.y],
-      colorHex: item.colorHex,
-    }));
-    socket.emit("update", newMap);
-  }
+  const changeStream = db.collection("Map").watch();
 
-  io.on("change", async (data) => {
-    console.log(data);
-    await prisma.map.update({
-      where: {
-        x: data.coords[0],
-        y: data.coords[1],
-      },
-      data: {
-        colorHex: data.colorHex,
-      },
-    });
+  changeStream.on("change", async (change) => {
+    console.log("Changement de la map");
+    const maps = await db.collection("Map").find().toArray();
+    socket.emit("update", maps);
   });
 
-  const interval = setInterval(updateMap, 5000);
-
+  // we end the connection with the client when he disconnects
   socket.on("disconnect", () => {
-    clearInterval(interval);
+    console.log("Déconnexion");
   });
 });
 
