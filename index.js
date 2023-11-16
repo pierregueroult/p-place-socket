@@ -3,6 +3,7 @@ const { Server } = require("socket.io");
 const prisma = require("./lib/prisma");
 
 const httpServer = createServer();
+
 const io = new Server(httpServer, {
   cors: {
     origin: ["https://place.pierregueroult.dev", "http://localhost:3000"],
@@ -53,6 +54,7 @@ io.on("connection", async (socket) => {
 
 httpServer.on("request", (req, res) => {
   if (req.url === "/health") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.writeHead(200);
     res.end();
   }
