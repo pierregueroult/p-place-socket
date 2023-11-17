@@ -22,11 +22,22 @@ io.on("connection", async (socket) => {
   // we look for a change in the map collection and we emit the change to the client
 
   const changeStream = db.collection("Map").watch();
+  const changeStreamMessage = db.collection("Message").watch();
 
   changeStream.on("change", async (change) => {
     console.log("Changement de la map");
     const maps = await db.collection("Map").find().toArray();
     socket.emit("update", maps);
+  });
+
+  changeStreamMessage.on("change", async (change) => {
+    console.log("Nouveau Message");
+    if (!change.fullDocument) return;
+    const message = {
+      text: change.fullDocument.text,
+      username: change.fullDocument.username,
+    };
+    socket.emit("new-message", message);
   });
 
   // we end the connection with the client when he disconnects
