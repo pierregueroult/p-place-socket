@@ -25,14 +25,20 @@ io.on("connection", async (socket) => {
   const changeStreamMessage = db.collection("Message").watch();
 
   changeStream.on("change", async (change) => {
-    console.log("Changement de la map");
+    if (change.operationType !== "update") return;
+
+    console.log(
+      `Changement du pixel x,y vers ${change.updateDescription.updatedFields.colorHex}`
+    );
     const maps = await db.collection("Map").find().toArray();
     socket.emit("update", maps);
   });
 
   changeStreamMessage.on("change", async (change) => {
-    console.log("Nouveau Message");
     if (!change.fullDocument) return;
+    console.log(
+      `Nouveau message : ${change.fullDocument.text} par ${change.fullDocument.username}`
+    );
     const message = {
       text: change.fullDocument.text,
       username: change.fullDocument.username,
